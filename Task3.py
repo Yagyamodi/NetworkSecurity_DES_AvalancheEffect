@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def alterText(txt: str, hamming_dist: int) -> str:
+def alterText(txt: str, ham_distance: int) -> str:
   """Alter the given txt at some hamming_dist number of positions. This is used to experimentally determine how the avalanche effect varies with hamming distance in DES. """
   length = len(txt)
-  random_pos = sample(range(0,length),hamming_dist)
+  random_pos = sample(range(0,length),ham_distance)
   random_pos.sort() # To ensure the for loop below doesnot increase the length of txt
   altered_txt = ""
   i = 0
@@ -35,30 +35,33 @@ key = "0110001101000000101101001010100110000000110110001110110011101011"
 # Settings
 total_rounds = 16
 midlength = 32
-hamming_dist = 1
+ham_distance = 1
 
 #output variables
-task2_diff = np.zeros((16,1))
+task3_diff = np.zeros((16,1))
 
 # Hamming the key in binary mode
 for i in range(0,10):
-    pt_arr = preprocess_plaintext(plaintext, midlength)
+    plaintext_vector = preprocess_plaintext(plaintext, midlength)
     original_key = [key]
-    key = [alterText(plaintext, hamming_dist)]
+    key = [alterText(plaintext, ham_distance)]    # new key with hamming distance 1 from the original key
+    # generating round keys for each key
     original_rkb, original_rkh = generate_round_keys(original_key, total_rounds, midlength)
     rkb,_ = generate_round_keys(key, total_rounds, midlength)
-    original_ciphertext, original_round_ciphertexts = encrypt(pt_arr, original_rkb, total_rounds, midlength)
-    _, round_ciphertexts = encrypt(pt_arr, rkb, total_rounds, midlength)
+    # running DES algorithm for 16 rounds
+    original_ciphertext, original_round_ciphertexts = encrypt(plaintext_vector, original_rkb, total_rounds, midlength)
+    _, round_ciphertexts = encrypt(plaintext_vector, rkb, total_rounds, midlength)
+    # finding hamming distance between two ciphertexts
     ham_diff = calc_diff(original_round_ciphertexts, round_ciphertexts)
-    task2_diff = np.column_stack((task2_diff, ham_diff))
+    task3_diff = np.column_stack((task3_diff, ham_diff))
 
 
-task2_diff = np.delete(task2_diff, 0, 1)
-task2_diff = np.transpose(task2_diff)
+task3_diff = np.delete(task3_diff, 0, 1)
+task3_diff = np.transpose(task3_diff)
 
 fig = plt.figure(figsize =(12, 9))
 
-# Creating axes instance
+# Creating axes instance and labels
 ax = fig.add_axes([0, 0, 1.5, 1])
 ax.set_xlabel("Encryption Rounds")
 ax.set_ylabel("Hamming distance in ciphertext")
@@ -66,7 +69,7 @@ ax.set_title("Task 3: For fixed plaintext, keys differ by 1 bit only. Find out t
 
  
 # Creating plot
-bp = ax.boxplot(task2_diff)
+bp = ax.boxplot(task3_diff)
  
 # show plot
 plt.show()
